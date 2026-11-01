@@ -22,6 +22,22 @@ Standalone **Rule-Based Multi-Agent Directed Acyclic Graph (DAG) Engine, Closed-
 
 ---
 
+
+## ComfyUI Model/Parameter Widgets & Simulink Hierarchical Sub-Blocks
+
+Every DAG block combines **ComfyUI** node ergonomics with **Simulink R2023b** hierarchical `SubSystem` design:
+
+1. **ComfyUI-Style Typed Sockets & KSampler Widgets**:
+   - **Color-Coded I/O Pins**: `● MODEL` (`#a78bfa`), `● CTX` (`#fbbf24`), `● PROMPT` (`#fb923c`), `ARTIFACT ●` (`#38bdf8`), and `STATE ●` (`#f472b6`).
+   - **Inline Model & Parameter Controls**: Per-node `model_checkpoint` selector (`gemini-4-argon`, `gemini-3.5-flash-lite`, `claude-opus-4`, `gpt-5-codex`, `deepseek-r1`), `temp`, `steps`, `cfg`, `tokens`, `seed` (`fixed` / `increment` / `randomize`), `sampler_name` (`rcpsp_wavefront`), and `scheduler` (`rcpsp_pipelined`).
+2. **Simulink-Style Hierarchical Sub-Blocks (`SubSystem` Inside a Block)**:
+   - **Inline Sub-Block Chain**: Each block renders its internal connected sub-block pipeline (`[In1] ➔ [EmbedFilter / StateMux] ➔ [KSamplerOp] ➔ [SchemaGuard] ➔ [Out1]`) directly inside the node card, with a **`+Sub`** button to insert new internal gain/filter stages on the fly.
+   - **Interactive Subsystem Drill-Down (`🔍 Open`)**: Clicking **`🔍 Open`** drills into the block's internal Simulink `SubSystem` diagram (`Root_MultiAgent_DAG / RETRIEVE_SubSystem`), exposing **Simulink Mask Parameters** (`gain_k`, `filter_tau_s`, `schema_guard`) and the full internal `Inport ➔ Sub-Blocks ➔ Outport` chain.
+
+![Simulink Subsystem Drill-Down & ComfyUI Widgets](docs/media/13_simulink_subsystem_drilldown.png)
+
+---
+
 ## Mobile-First & Desktop Responsive UX
 
 On mobile viewports (`< 768px`, e.g. iPhone `390x844`), the interface automatically switches to a full-width mobile layout with:

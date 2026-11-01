@@ -170,6 +170,70 @@ function appendLog(line, level = 20, component = 'dag_engine') {
   });
 }
 
+
+function attachComfyAndSimulink(n, idx = 0) {
+  const agent = String(n.agent || 'Agent_Alpha');
+  const action = String(n.action || 'retrieve');
+  const defaultModel = agent.includes('Beta')
+    ? 'claude-opus-4'
+    : agent.includes('Gamma')
+    ? 'gemini-3.5-flash-lite'
+    : 'gemini-4-argon';
+
+  if (!n.comfy_params) {
+    n.comfy_params = {
+      model_checkpoint: defaultModel,
+      temperature: action === 'synthesize' ? 0.15 : 0.25,
+      top_p: 0.95,
+      max_tokens: action === 'synthesize' ? 8192 : 4096,
+      seed: 42819001 + idx * 137,
+      control_after_generate: 'fixed',
+      steps: action === 'cross_critique' ? 30 : 20,
+      cfg_scale: 7.5,
+      sampler_name: 'rcpsp_wavefront',
+      scheduler: 'rcpsp_pipelined',
+    };
+  }
+
+  if (!n.inputs) {
+    n.inputs = [
+      { name: 'MODEL', type: 'MODEL', color: '#a78bfa' },
+      { name: 'CONTEXT', type: 'CONTEXT', color: '#fbbf24' },
+      { name: 'PROMPT', type: 'PROMPT', color: '#fb923c' },
+    ];
+  }
+
+  if (!n.outputs) {
+    n.outputs = [
+      { name: 'ARTIFACT', type: 'ARTIFACT', color: '#38bdf8' },
+      { name: 'STATE', type: 'STATE', color: '#f472b6' },
+    ];
+  }
+
+  if (!n.subsystem) {
+    const modelUsed = n.comfy_params.model_checkpoint || defaultModel;
+    n.subsystem = {
+      name: `${action.toUpperCase()}_SubSystem`,
+      inports: ['In1 (Context)', 'In2 (Model)'],
+      outports: ['Out1 (Artifact)', 'Out2 (State)'],
+      mask_params: { gain_k: 1.0, filter_tau_s: 0.12, schema_guard: 'strict' },
+      sub_blocks: [
+        { id: 'sb_in', label: 'In1: ContextBus', block_type: 'Inport', model: 'simulink/Inport', params: { port: 1, bus_width: 4 }, status: 'idle' },
+        { id: 'sb_filter', label: action === 'synthesize' ? 'StateMux & Pre-Filter' : 'Tokenizer & Embedder', block_type: action === 'synthesize' ? 'Mux' : 'Filter', model: 'text-embedding-004', params: { chunk_size: 512, tau_s: 0.12 }, status: 'idle' },
+        { id: 'sb_sampler', label: `KSampler (${modelUsed})`, block_type: 'ModelOp', model: modelUsed, params: { steps: n.comfy_params.steps, cfg: n.comfy_params.cfg_scale, temp: n.comfy_params.temperature }, status: 'idle' },
+        { id: 'sb_verify', label: 'Schema & Gain Guard', block_type: 'Verifier', model: 'shield-verifier-v2', params: { gain_k: 1.0, threshold: 0.95 }, status: 'idle' },
+        { id: 'sb_out', label: 'Out1: ArtifactOut', block_type: 'Outport', model: 'simulink/Outport', params: { port: 1 }, status: 'idle' },
+      ],
+      sub_edges: [
+        { id: 'se_1', source: 'sb_in', target: 'sb_filter' },
+        { id: 'se_2', source: 'sb_filter', target: 'sb_sampler' },
+        { id: 'se_3', source: 'sb_sampler', target: 'sb_verify' },
+        { id: 'se_4', source: 'sb_verify', target: 'sb_out' },
+      ],
+    };
+  }
+}
+
 function autoLayoutDag(nodesInput, edgesInput) {
   const nodes = JSON.parse(JSON.stringify(nodesInput || []));
   const edges = edgesInput || [];
@@ -210,13 +274,14 @@ function autoLayoutDag(nodesInput, edgesInput) {
   Object.keys(waves).map(Number).sort((a, b) => a - b).forEach((wIdx) => {
     const wNodes = waves[wIdx];
     wNodes.forEach((n, colIdx) => {
-      const defaultX = wNodes.length === 1 ? 350 : wNodes.length === 2 ? 180 + colIdx * 340 : 60 + colIdx * 290;
-      const defaultY = 45 + wIdx * 190;
+      const defaultX = wNodes.length === 1 ? 360 : wNodes.length === 2 ? 180 + colIdx * 360 : 50 + colIdx * 310;
+      const defaultY = 45 + wIdx * 265;
       n.x_pos = defaultX;
       n.y_pos = defaultY;
       n.complexity = Number(n.complexity ?? 0.0);
       n.context_load = Number(n.context_load ?? 0.0);
       n.priority = n.priority || 'fast';
+      attachComfyAndSimulink(n, wIdx * 10 + colIdx);
     });
   });
 
@@ -657,11 +722,30 @@ app.post('/api/workflow/execute-step', async (req, res) => {
     metrics: getMetricsSnapshot(),
   });
 
+  const subBlocks = (payload.subsystem && Array.isArray(payload.subsystem.sub_blocks))
+    ? payload.subsystem.sub_blocks
+    : [
+        { id: 'sb_in', label: 'In1: ContextBus', block_type: 'Inport' },
+        { id: 'sb_filter', label: 'Tokenizer & Embedder', block_type: 'Filter' },
+        { id: 'sb_sampler', label: 'KSampler / ModelOp', block_type: 'ModelOp' },
+        { id: 'sb_verify', label: 'Schema & Gain Guard', block_type: 'Verifier' },
+        { id: 'sb_out', label: 'Out1: ArtifactOut', block_type: 'Outport' },
+      ];
+  const subBlockTrace = subBlocks.map((sb, idx) => ({
+    id: sb.id,
+    label: sb.label,
+    block_type: sb.block_type,
+    status: 'success',
+    latency_ms: Math.round((delayMs / Math.max(1, subBlocks.length)) * (idx + 1)),
+  }));
+
   res.json({
     ok: true,
     success: true,
     agent_id: rawAgent,
     message: resultMsg,
+    comfy_params: payload.comfy_params || null,
+    sub_block_trace: subBlockTrace,
     metrics: getMetricsSnapshot(),
   });
 });

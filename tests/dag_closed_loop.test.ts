@@ -278,3 +278,72 @@ describe("5. Backend API Server Integration Tests (Multi-Agent Express REST + Cl
     }
   });
 });
+
+
+describe("6. ComfyUI Model/Parameter Widgets & Simulink Hierarchical Subsystem Blocks", () => {
+  test("every generated block contains ComfyUI model/parameter widgets, typed I/O sockets, and a Simulink subsystem with connected sub_blocks", () => {
+    const gen = new RuleBasedTaskGenerator();
+    const dag = gen.generateWorkflow("Synthesize 3-stage multi-agent report", 1);
+    for (const node of dag.nodes) {
+      // ComfyUI widget parameters & typed sockets
+      expect(node.comfy_params).toBeDefined();
+      expect(typeof node.comfy_params?.model_checkpoint).toBe("string");
+      expect(typeof node.comfy_params?.temperature).toBe("number");
+      expect(typeof node.comfy_params?.max_tokens).toBe("number");
+      expect(typeof node.comfy_params?.seed).toBe("number");
+      expect(typeof node.comfy_params?.steps).toBe("number");
+      expect(typeof node.comfy_params?.cfg_scale).toBe("number");
+      expect(typeof node.comfy_params?.sampler_name).toBe("string");
+      expect(Array.isArray(node.inputs)).toBe(true);
+      expect(Array.isArray(node.outputs)).toBe(true);
+
+      // Simulink hierarchical subsystem (Inport -> Sub-Blocks -> Outport)
+      expect(node.subsystem).toBeDefined();
+      expect(node.subsystem?.sub_blocks.length).toBeGreaterThanOrEqual(4);
+      expect(node.subsystem?.sub_blocks[0].block_type).toBe("Inport");
+      expect(node.subsystem?.sub_blocks[node.subsystem.sub_blocks.length - 1].block_type).toBe("Outport");
+      expect(node.subsystem?.sub_edges.length).toBeGreaterThanOrEqual(3);
+      expect(node.subsystem?.mask_params).toBeDefined();
+    }
+  });
+
+  test("server /api/workflow/execute-step executes internal Simulink sub_blocks and returns sub_block_trace + ComfyUI model metadata", async () => {
+    delete require.cache[require.resolve("../server.cjs")];
+    const { app } = require("../server.cjs");
+    const srv = app.listen(0);
+    const port = srv.address().port;
+    const base = `http://127.0.0.1:${port}`;
+
+    try {
+      const genRes = await fetch(`${base}/api/workflow/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Synthesize 3-stage report", mode: 1 }),
+      }).then((r) => r.json());
+
+      const firstNode = genRes.data.nodes[0];
+      expect(firstNode.comfy_params.model_checkpoint).toBeDefined();
+      expect(firstNode.subsystem.sub_blocks.length).toBeGreaterThanOrEqual(4);
+
+      const execRes = await fetch(`${base}/api/workflow/execute-step`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: firstNode.action,
+          agent: firstNode.agent,
+          target: firstNode.target,
+          comfy_params: firstNode.comfy_params,
+          subsystem: firstNode.subsystem,
+          sim_delay_ms: 10,
+        }),
+      }).then((r) => r.json());
+
+      expect(execRes.ok).toBe(true);
+      expect(Array.isArray(execRes.sub_block_trace)).toBe(true);
+      expect(execRes.sub_block_trace.length).toBe(firstNode.subsystem.sub_blocks.length);
+      expect(execRes.sub_block_trace.every((sb: any) => sb.status === "success")).toBe(true);
+    } finally {
+      srv.close();
+    }
+  });
+});

@@ -203,6 +203,152 @@ export function normalizeAgentId(agentStr: string): string {
   return 'Agent_Alpha';
 }
 
+
+export interface ComfySocketPin {
+  name: string;
+  type: 'MODEL' | 'CONTEXT' | 'PROMPT' | 'LATENT' | 'ARTIFACT' | 'STATE' | 'VERDICT';
+  color: string;
+}
+
+export interface ComfyParamConfig {
+  model_checkpoint: string;
+  temperature: number;
+  top_p: number;
+  max_tokens: number;
+  seed: number;
+  control_after_generate: 'fixed' | 'increment' | 'randomize';
+  steps: number;
+  cfg_scale: number;
+  sampler_name: 'rcpsp_wavefront' | 'euler_ancestral' | 'dpmpp_2m_sde' | 'beam_search';
+  scheduler: 'karras' | 'normal' | 'rcpsp_pipelined';
+}
+
+export interface SimulinkSubBlock {
+  id: string;
+  label: string;
+  block_type: 'Inport' | 'Filter' | 'ModelOp' | 'Gain' | 'Verifier' | 'Mux' | 'Outport';
+  model: string;
+  params: Record<string, string | number>;
+  status: 'idle' | 'running' | 'success' | 'failed';
+}
+
+export interface SimulinkSubsystem {
+  name: string;
+  inports: string[];
+  outports: string[];
+  mask_params: Record<string, string | number>;
+  sub_blocks: SimulinkSubBlock[];
+  sub_edges: Array<{ id: string; source: string; target: string }>;
+}
+
+export function buildComfyAndSimulinkDefaults(node: DagNode, idx = 0): void {
+  const agent = String(node.agent || 'Agent_Alpha');
+  const action = String(node.action || 'retrieve');
+  const defaultModel = agent.includes('Beta')
+    ? 'claude-opus-4'
+    : agent.includes('Gamma')
+    ? 'gemini-3.5-flash-lite'
+    : 'gemini-4-argon';
+
+  if (!node.comfy_params) {
+    node.comfy_params = {
+      model_checkpoint: defaultModel,
+      temperature: action === 'synthesize' ? 0.15 : 0.25,
+      top_p: 0.95,
+      max_tokens: action === 'synthesize' ? 8192 : 4096,
+      seed: 42819001 + idx * 137,
+      control_after_generate: 'fixed',
+      steps: action === 'cross_critique' ? 30 : 20,
+      cfg_scale: 7.5,
+      sampler_name: 'rcpsp_wavefront',
+      scheduler: 'rcpsp_pipelined',
+    };
+  }
+
+  if (!node.inputs) {
+    node.inputs = [
+      { name: 'MODEL', type: 'MODEL', color: '#a78bfa' },
+      { name: 'CONTEXT', type: 'CONTEXT', color: '#fbbf24' },
+      { name: 'PROMPT', type: 'PROMPT', color: '#fb923c' },
+    ];
+  }
+
+  if (!node.outputs) {
+    node.outputs = [
+      { name: 'ARTIFACT', type: 'ARTIFACT', color: '#38bdf8' },
+      { name: 'STATE', type: 'STATE', color: '#f472b6' },
+    ];
+  }
+
+  if (!node.subsystem) {
+    const modelUsed = node.comfy_params.model_checkpoint || defaultModel;
+    const subBlocks: SimulinkSubBlock[] = [
+      {
+        id: 'sb_in',
+        label: 'In1: ContextBus',
+        block_type: 'Inport',
+        model: 'simulink/Inport',
+        params: { port: 1, bus_width: 4 },
+        status: 'idle',
+      },
+      {
+        id: 'sb_filter',
+        label: action === 'synthesize' ? 'StateMux & Pre-Filter' : 'Tokenizer & Embedder',
+        block_type: action === 'synthesize' ? 'Mux' : 'Filter',
+        model: 'text-embedding-004',
+        params: { chunk_size: 512, tau_s: 0.12 },
+        status: 'idle',
+      },
+      {
+        id: 'sb_sampler',
+        label: `KSampler (${modelUsed})`,
+        block_type: 'ModelOp',
+        model: modelUsed,
+        params: {
+          steps: node.comfy_params.steps,
+          cfg: node.comfy_params.cfg_scale,
+          temp: node.comfy_params.temperature,
+        },
+        status: 'idle',
+      },
+      {
+        id: 'sb_verify',
+        label: 'Schema & Gain Guard',
+        block_type: 'Verifier',
+        model: 'shield-verifier-v2',
+        params: { gain_k: 1.0, threshold: 0.95 },
+        status: 'idle',
+      },
+      {
+        id: 'sb_out',
+        label: 'Out1: ArtifactOut',
+        block_type: 'Outport',
+        model: 'simulink/Outport',
+        params: { port: 1 },
+        status: 'idle',
+      },
+    ];
+
+    node.subsystem = {
+      name: `${action.toUpperCase()}_SubSystem`,
+      inports: ['In1 (Context)', 'In2 (Model)'],
+      outports: ['Out1 (Artifact)', 'Out2 (State)'],
+      mask_params: {
+        gain_k: 1.0,
+        filter_tau_s: 0.12,
+        schema_guard: 'strict',
+      },
+      sub_blocks: subBlocks,
+      sub_edges: [
+        { id: 'se_1', source: 'sb_in', target: 'sb_filter' },
+        { id: 'se_2', source: 'sb_filter', target: 'sb_sampler' },
+        { id: 'se_3', source: 'sb_sampler', target: 'sb_verify' },
+        { id: 'se_4', source: 'sb_verify', target: 'sb_out' },
+      ],
+    };
+  }
+}
+
 export function autoLayoutDag(nodesInput: DagNode[], edgesInput: DagEdge[]): DagNode[] {
   const nodes = deepClone(nodesInput || []);
   const edges = edgesInput || [];
@@ -248,8 +394,8 @@ export function autoLayoutDag(nodesInput: DagNode[], edgesInput: DagEdge[]): Dag
     const wNodes = waves[wIdx];
     const count = wNodes.length;
     wNodes.forEach((n, colIdx) => {
-      const defaultX = count === 1 ? 350 : count === 2 ? 180 + colIdx * 340 : 60 + colIdx * 290;
-      const defaultY = 45 + wIdx * 190;
+      const defaultX = count === 1 ? 360 : count === 2 ? 180 + colIdx * 360 : 50 + colIdx * 310;
+      const defaultY = 45 + wIdx * 265;
       n.x_pos = Math.round(defaultX);
       n.y_pos = Math.round(defaultY);
 
@@ -280,6 +426,7 @@ export function autoLayoutDag(nodesInput: DagNode[], edgesInput: DagEdge[]): Dag
       n.complexity = Number(n.complexity ?? 0.0);
       n.context_load = Number(n.context_load ?? 0.0);
       n.priority = n.priority || 'fast';
+      buildComfyAndSimulinkDefaults(n, wIdx * 10 + colIdx);
     });
   }
 
