@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  ReactFlowProvider,
-} from '@xyflow/react';
+import { ReactFlowProvider } from '@xyflow/react';
 import {
   Network,
   Clock,
@@ -34,6 +32,14 @@ import ClosedLoopMonitor from './components/ClosedLoopMonitor';
 
 export default function App() {
   const [isDark, setIsDark] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   useEffect(() => {
     const t = isDark ? C_dark : C_light;
     for (const [k, v] of Object.entries(t)) {
@@ -42,7 +48,7 @@ export default function App() {
   }, [isDark]);
 
   const [mode, setMode] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<'builder' | 'pipeline' | 'closed_loop' | 'timeline'>('builder');
+  const [activeTab, setActiveTab] = useState<'builder' | 'pipeline' | 'closed_loop' | 'timeline' | 'telemetry'>('builder');
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [monitoringSummary, setMonitoringSummary] = useState<MonitoringSummary | null>(null);
   const [closedLoopReport, setClosedLoopReport] = useState<any | null>(null);
@@ -51,24 +57,7 @@ export default function App() {
   const [actions, setActions] = useState<RobotAction[]>([]);
   const [actionResults, setActionResults] = useState<RobotAction[]>([]);
   const [engineLogs, setEngineLogs] = useState<string[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: 1,
-      role: 'generator',
-      senderName: 'Rule-Based Generator',
-      emoji: '📋',
-      text: 'Grounded 3-Arm Parallel Tower Blueprint ready (FR3_1: Table 1, FR3_2: Table 2, FR3_3: Table 3).',
-      ts: new Date(),
-    },
-    {
-      id: 2,
-      role: 'vla',
-      senderName: 'ATAMP Wavefront Planner',
-      emoji: '🦾',
-      text: 'Synthesized parallel pick wavefronts + M_center mutex-serialized placements (0 violations).',
-      ts: new Date(),
-    },
-  ]);
+  const [chatMessages] = useState<ChatMessage[]>([]);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -131,27 +120,16 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: 'Build a 3-layer tower with maximum parallelism',
+          prompt: 'Synthesize a 3-stage multi-agent research report with maximum parallelism',
           mode,
-          inject_overhang: true,
-          inject_pose_slip: true,
+          inject_overflow: true,
+          inject_schema_drift: true,
         }),
       }).then((r) => r.json());
       if (res.ok && res.data) {
         setClosedLoopReport(res.data);
         setSchedule(res.data.finalDag?.schedule || null);
         setCertificates(res.data.stages?.validate?.certificates || []);
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            role: 'verifier',
-            senderName: 'Closed-Loop Verifier',
-            emoji: '🛡️',
-            text: `Closed-Loop PASS: Repaired ${res.data.stages.validate.certificatesIntercepted} Shield violation(s) & spliced 3-node recovery [${res.data.stages.revise.splicedNodeIds.join(' -> ')}].`,
-            ts: new Date(),
-          },
-        ]);
         fetchStatus();
       }
     } catch (e) {
@@ -168,149 +146,158 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, overflow: 'hidden' }}>
-      {/* Top Studio Header */}
+    <div style={{ width: '100vw', height: '100dvh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, overflow: 'hidden' }}>
+      {/* Responsive Top Studio Header */}
       <header
         style={{
-          height: 54,
-          padding: '0 16px',
+          minHeight: isMobile ? 48 : 54,
+          padding: isMobile ? '6px 10px' : '0 16px',
           background: C.bgChat,
           borderBottom: `1px solid ${C.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 8,
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: isMobile ? 28 : 32,
+              height: isMobile ? 28 : 32,
               borderRadius: 9,
               background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 0 14px rgba(139, 92, 246, 0.4)',
+              flexShrink: 0,
             }}
           >
-            <GitBranch size={17} color="#fff" />
+            <GitBranch size={isMobile ? 14 : 17} color="#fff" />
           </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.text, letterSpacing: '-0.01em' }}>
-              ATAMP Rule-Based DAG Studio
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: isMobile ? 12.5 : 14, fontWeight: 800, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Multi-Agent DAG Studio
             </div>
-            <div style={{ fontSize: 10, color: C.textMuted, fontFamily: monoFont }}>
-              Plan (DAG) · Pre-Flight Shield · RCPSP Wavefront · 0-Token Subgraph Recovery
-            </div>
+            {!isMobile && (
+              <div style={{ fontSize: 10, color: C.textMuted, fontFamily: monoFont }}>
+                Plan (DAG) · Pre-Flight Shield · RCPSP Wavefront · 0-Token Subgraph Recovery
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Mode Selector & Navigation Tabs */}
+        {/* Mode Selector & Desktop Navigation Tabs */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <select
             value={mode}
             onChange={(e) => setMode(Number(e.target.value))}
-            aria-label="Workcell Mode"
+            aria-label="Orchestration Mode"
             style={{
               background: C.inputBg,
               border: `1px solid ${C.inputBorder}`,
               borderRadius: 8,
               color: C.inputText,
-              fontSize: 11.5,
+              fontSize: isMobile ? 10.5 : 11.5,
               fontWeight: 700,
-              padding: '6px 10px',
+              padding: isMobile ? '4px 6px' : '6px 10px',
+              maxWidth: isMobile ? 132 : undefined,
               cursor: 'pointer',
             }}
           >
-            <option value={1}>Mode 1: 3-Arm Parallel Tower</option>
-            <option value={2}>Mode 2: 50Hz Conveyor Stream</option>
-            <option value={3}>Mode 3: Flexible Basket Packing</option>
-            <option value={5}>Mode 5: Bimanual LongBar Wave</option>
+            <option value={1}>Mode 1: 3-Agent Parallel Synthesis</option>
+            <option value={2}>Mode 2: Event Stream Triage</option>
+            <option value={3}>Mode 3: Full-Stack Feature Pipeline</option>
+            <option value={4}>Mode 4: Adversarial Cross-Critique</option>
           </select>
 
-          <div style={{ display: 'flex', background: C.bgInput, padding: 3, borderRadius: 9, border: `1px solid ${C.border}`, gap: 3 }}>
-            {(
-              [
-                ['builder', 'Visual DAG Builder', Network],
-                ['pipeline', 'Agent & Rule Graph', GitBranch],
-                ['closed_loop', 'Closed-Loop & Shield', ShieldCheck],
-                ['timeline', 'Gantt & Event Trace', Clock],
-              ] as const
-            ).map(([key, label, Icon]) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                data-testid={`tab-${key}`}
-                style={{
-                  padding: '5px 11px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: activeTab === key ? 'linear-gradient(135deg, #3b82f6, #6d28d9)' : 'transparent',
-                  color: activeTab === key ? '#fff' : C.textDim,
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                }}
-              >
-                <Icon size={13} />
-                {label}
-              </button>
-            ))}
-          </div>
+          {!isMobile && (
+            <div style={{ display: 'flex', background: C.bgInput, padding: 3, borderRadius: 9, border: `1px solid ${C.border}`, gap: 3 }}>
+              {(
+                [
+                  ['builder', 'Visual DAG Builder', Network],
+                  ['pipeline', 'Agent & Rule Graph', GitBranch],
+                  ['closed_loop', 'Closed-Loop & Shield', ShieldCheck],
+                  ['timeline', 'Gantt & Event Trace', Clock],
+                ] as const
+              ).map(([key, label, Icon]) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  data-testid={`tab-${key}`}
+                  style={{
+                    padding: '5px 11px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: activeTab === key ? 'linear-gradient(135deg, #3b82f6, #6d28d9)' : 'transparent',
+                    color: activeTab === key ? '#fff' : C.textDim,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <Icon size={13} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={handleRunClosedLoopHeader}
-            data-testid="header-closed-loop-btn"
-            style={{
-              padding: '6px 11px',
-              borderRadius: 8,
-              border: '1px solid rgba(16, 185, 129, 0.45)',
-              background: 'rgba(16, 185, 129, 0.15)',
-              color: '#34d399',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-            }}
-          >
-            <RefreshCw size={12} /> Auto-Verify Loop
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {!isMobile && (
+            <button
+              onClick={handleRunClosedLoopHeader}
+              data-testid="header-closed-loop-btn"
+              style={{
+                padding: '6px 11px',
+                borderRadius: 8,
+                border: '1px solid rgba(16, 185, 129, 0.45)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#34d399',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              <RefreshCw size={12} /> Auto-Verify Loop
+            </button>
+          )}
 
           <button
             onClick={handleReset}
             style={{
-              padding: '6px 10px',
+              padding: isMobile ? '5px 8px' : '6px 10px',
               borderRadius: 8,
               border: `1px solid ${C.border}`,
               background: C.inputBg,
               color: C.textDim,
-              fontSize: 11,
+              fontSize: isMobile ? 10.5 : 11,
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
             }}
+            title="Reset Workspace"
           >
-            <RotateCcw size={12} /> Reset
+            <RotateCcw size={12} /> {!isMobile && 'Reset'}
           </button>
 
           <button
             onClick={() => setIsDark((d) => !d)}
             style={{
-              width: 32,
-              height: 32,
+              width: isMobile ? 28 : 32,
+              height: isMobile ? 28 : 32,
               borderRadius: 8,
               border: `1px solid ${C.border}`,
               background: C.inputBg,
@@ -329,46 +316,47 @@ export default function App() {
 
       {/* Main Split Body */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Left Telemetry & Log Sidebar */}
-        <aside
-          style={{
-            width: 310,
-            background: C.bgSide,
-            borderRight: `1px solid ${C.border}`,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ padding: '10px 14px 4px', fontSize: 11, fontWeight: 800, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Activity size={13} color="#10b981" /> Multi-Arm Workcell Telemetry
-          </div>
-
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            <KpiDashboard metrics={metrics} fontSize={13} />
-          </div>
-
-          {/* Live Engine Log Stream */}
-          <div style={{ height: 195, borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.25)' }}>
-            <div style={{ padding: '6px 12px', borderBottom: `1px solid ${C.border}`, fontSize: 10.5, fontWeight: 700, color: C.textDim, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Terminal size={12} color="#38bdf8" /> Rule Engine & Shield Stream
+        {/* Left Telemetry & Log Sidebar (Desktop only; on Mobile it is a dedicated full-screen tab) */}
+        {!isMobile && (
+          <aside
+            style={{
+              width: 305,
+              background: C.bgSide,
+              borderRight: `1px solid ${C.border}`,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ padding: '10px 14px 4px', fontSize: 11, fontWeight: 800, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Activity size={13} color="#10b981" /> Multi-Agent Telemetry
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px', fontFamily: monoFont, fontSize: 10, color: C.textDim, display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {engineLogs.length === 0 ? (
-                <div style={{ color: C.textMuted }}>Ready — awaiting DAG synthesis or execution...</div>
-              ) : (
-                engineLogs.slice(-25).map((line, idx) => (
-                  <div key={idx} style={{ wordBreak: 'break-word', lineHeight: 1.35 }}>
-                    {line}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </aside>
 
-        {/* Right Primary Canvas / Monitoring View */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <KpiDashboard metrics={metrics} fontSize={13} />
+            </div>
+
+            <div style={{ height: 195, borderTop: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.25)' }}>
+              <div style={{ padding: '6px 12px', borderBottom: `1px solid ${C.border}`, fontSize: 10.5, fontWeight: 700, color: C.textDim, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Terminal size={12} color="#38bdf8" /> Rule Engine & Shield Stream
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px', fontFamily: monoFont, fontSize: 10, color: C.textDim, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {engineLogs.length === 0 ? (
+                  <div style={{ color: C.textMuted }}>Ready — awaiting multi-agent DAG synthesis...</div>
+                ) : (
+                  engineLogs.slice(-25).map((line, idx) => (
+                    <div key={idx} style={{ wordBreak: 'break-word', lineHeight: 1.35 }}>
+                      {line}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </aside>
+        )}
+
+        {/* Primary Canvas / Monitoring View */}
         <main style={{ flex: 1, height: '100%', overflow: 'hidden', position: 'relative' }}>
           {activeTab === 'builder' && (
             <ReactFlowProvider>
@@ -385,6 +373,7 @@ export default function App() {
                 }}
                 mode={mode}
                 isDark={isDark}
+                isMobile={isMobile}
               />
             </ReactFlowProvider>
           )}
@@ -396,10 +385,10 @@ export default function App() {
                 chatMessages={chatMessages}
                 actions={actions}
                 results={actionResults}
-                userGoal="Build a 9-layer tower on the central target table with Pre-Flight Shield & RCPSP Wavefront Scheduling"
+                userGoal="Synthesize a 9-shard multi-agent knowledge graph with Pre-Flight Shield & RCPSP Wavefront Scheduling"
                 mode={mode}
-                brainMode="argon_optimized"
                 isDark={isDark}
+                isMobile={isMobile}
               />
             </ReactFlowProvider>
           )}
@@ -412,12 +401,13 @@ export default function App() {
               certificates={certificates}
               onTriggerAudit={fetchStatus}
               onTriggerClosedLoop={handleRunClosedLoopHeader}
+              isMobile={isMobile}
             />
           )}
 
           {activeTab === 'timeline' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: '100%', overflow: 'hidden' }}>
-              <div style={{ borderRight: `1px solid ${C.border}`, overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', height: '100%', overflowY: 'auto' }}>
+              <div style={{ borderRight: isMobile ? 'none' : `1px solid ${C.border}`, borderBottom: isMobile ? `1px solid ${C.border}` : 'none', overflowY: 'auto' }}>
                 <GanttChart actions={actions} results={actionResults} metrics={metrics} fontSize={13} />
               </div>
               <div style={{ overflowY: 'auto' }}>
@@ -425,8 +415,80 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {activeTab === 'telemetry' && (
+            <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <KpiDashboard metrics={metrics} fontSize={13} />
+              <div style={{ margin: '0 14px 14px', border: `1px solid ${C.border}`, borderRadius: 10, background: 'rgba(0,0,0,0.25)', padding: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.textDim, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Terminal size={12} color="#38bdf8" /> Rule Engine & Shield Stream
+                </div>
+                <div style={{ maxHeight: 220, overflowY: 'auto', fontFamily: monoFont, fontSize: 10, color: C.textDim, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {engineLogs.length === 0 ? (
+                    <div style={{ color: C.textMuted }}>Ready — awaiting multi-agent DAG synthesis...</div>
+                  ) : (
+                    engineLogs.slice(-25).map((line, idx) => (
+                      <div key={idx} style={{ wordBreak: 'break-word', lineHeight: 1.35 }}>
+                        {line}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
+
+      {/* Sticky Mobile Bottom Navigation Bar (< 768px) */}
+      {isMobile && (
+        <nav
+          data-testid="mobile-bottom-nav"
+          style={{
+            height: 56,
+            background: C.bgChat,
+            borderTop: `1px solid ${C.border}`,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            flexShrink: 0,
+          }}
+        >
+          {(
+            [
+              ['builder', 'DAG', Network],
+              ['pipeline', 'Agents', GitBranch],
+              ['closed_loop', 'Shield', ShieldCheck],
+              ['timeline', 'Gantt', Clock],
+              ['telemetry', 'Metrics', Activity],
+            ] as const
+          ).map(([key, label, Icon]) => {
+            const active = activeTab === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                data-testid={`mobile-tab-${key}`}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: active ? '#60a5fa' : C.textMuted,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 3,
+                  fontSize: 10,
+                  fontWeight: active ? 800 : 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <Icon size={16} />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

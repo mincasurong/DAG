@@ -208,7 +208,7 @@ export interface BlockData {
   holder?: string | null;
 }
 
-export interface RobotMetrics {
+export interface AgentMetrics {
   state: string;
   phase: string;
   action: string;
@@ -217,16 +217,17 @@ export interface RobotMetrics {
   idle_pct: number;
   tasks_completed: number;
   tasks_failed: number;
-  j1_deg?: number;
-  base_yaw_deg?: number;
+  role?: string;
 }
 
 export interface MetricsData {
   timestamp: number;
-  robots: Record<string, RobotMetrics>;
-  tower_height: number;
-  center_occupied_by: string | null;
-  blocks?: Record<string, BlockData>;
+  agents?: Record<string, AgentMetrics>;
+  robots?: Record<string, AgentMetrics>;
+  merged_count?: number;
+  tower_height?: number;
+  shared_state_locked_by?: string | null;
+  center_occupied_by?: string | null;
 }
 
 export interface MonitoringAnomaly {
@@ -312,24 +313,25 @@ export const btnCtrl: React.CSSProperties = {
 export const parseAction = (raw: string) => {
   try {
     const o = JSON.parse(raw);
+    const agent = o.agent || o.robot || '';
     return {
       action: o.action || '?',
-      robot: o.robot || '',
+      agent,
+      robot: agent,
       target: o.target || '',
-      x: o.x,
-      y: o.y,
-      detail: `${o.robot || ''} ${o.target || ''}${o.x !== undefined ? ` x=${o.x}` : ''}${o.y !== undefined ? ` y=${o.y}` : ''}`.trim(),
+      detail: `${agent} ${o.target || ''}`.trim(),
     };
   } catch {
-    return { action: '?', robot: '', target: '', x: undefined, y: undefined, detail: raw };
+    return { action: '?', agent: '', robot: '', target: '', detail: raw };
   }
 };
 
 export const parseResult = (raw: string) => {
   try {
     const o = JSON.parse(raw);
-    return { success: !!o.success, message: o.message || '', robot_id: o.robot_id || '' };
+    const agentId = o.agent_id || o.robot_id || '';
+    return { success: !!o.success, message: o.message || '', agent_id: agentId, robot_id: agentId };
   } catch {
-    return { success: false, message: raw, robot_id: '' };
+    return { success: false, message: raw, agent_id: '', robot_id: '' };
   }
 };
