@@ -1,0 +1,10 @@
+.git
+.gitignore
+node_modules/
+.env*
+*.ps1
+docs/media/
+tests/
+src/
+README.md
+tsconfig.tsbuildinfo

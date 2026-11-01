@@ -6,6 +6,23 @@ Standalone **Rule-Based Directed Acyclic Graph (DAG) Engine, Closed-Loop Safety 
 
 ---
 
+
+## Live GCP Cloud Run Deployment (PoC)
+
+- **Live Service URL**: [**https://atamp-dag-studio-533179078347.asia-northeast3.run.app**](https://atamp-dag-studio-533179078347.asia-northeast3.run.app)
+- **GCP Project / Region**: `jplt-511713` / `asia-northeast3` (`atamp-dag-studio`)
+
+### Deploy or Update on GCP Cloud Run
+```powershell
+# Build dist/ and deploy to Google Cloud Run (asia-northeast3)
+.\deploy.ps1
+
+# Check live Cloud Run revision status, /api/status health, and recent logs
+.\status.ps1
+```
+
+---
+
 ## Core Closed-Loop Architecture (`Plan -> Validate -> Schedule -> Execute -> Learn & Revise`)
 
 ```mermaid
