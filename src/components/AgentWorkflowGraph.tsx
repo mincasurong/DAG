@@ -81,10 +81,10 @@ const Pill = ({ color, children, pulse = false }: { color: string; children: Rea
 );
 
 const GoalNode = ({ data }: { data: { goal: string } }) => (
-  <div style={{ ...baseFlowCardStyle, width: 270, border: '1px solid rgba(56, 189, 248, 0.35)' }}>
+  <div style={{ ...baseFlowCardStyle, width: 270, border: '1px solid rgba(34, 197, 94, 0.35)' }}>
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 9, background: 'linear-gradient(135deg, #0284c7, #38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 9, background: 'linear-gradient(135deg, #22c55e, #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Sparkles size={15} color="#fff" />
         </div>
         <div>
@@ -97,7 +97,7 @@ const GoalNode = ({ data }: { data: { goal: string } }) => (
     <div style={{ background: C.subCardBg, borderRadius: 12, padding: '8px 11px', border: `1px solid ${C.subCardBorder}`, color: C.subCardText, fontSize: 10.5, fontStyle: 'italic' }}>
       "{data.goal}"
     </div>
-    <Handle type="source" position={Position.Bottom} style={makeHandleStyle('#38bdf8')} />
+    <Handle type="source" position={Position.Bottom} style={makeHandleStyle(C.green)} />
   </div>
 );
 
@@ -148,7 +148,7 @@ const SpecialistAgentNode = ({ data }: any) => (
 
 const MutexNode = ({ data }: any) => {
   const isLocked = Boolean(data.lockedBy);
-  const color = isLocked ? '#f97316' : '#10b981';
+  const color = isLocked ? '#f97316' : C.green;
   return (
     <div style={{ ...baseFlowCardStyle, width: 260, border: `1px solid ${color}60` }}>
       <Handle type="target" position={Position.Top} style={makeHandleStyle(color)} />
@@ -174,11 +174,11 @@ const MutexNode = ({ data }: any) => {
 };
 
 const OutputStoreNode = ({ data }: any) => (
-  <div style={{ ...baseFlowCardStyle, width: 260, border: '1px solid rgba(56, 189, 248, 0.4)' }}>
-    <Handle type="target" position={Position.Top} style={makeHandleStyle('#38bdf8')} />
+  <div style={{ ...baseFlowCardStyle, width: 260, border: '1px solid rgba(34, 197, 94, 0.4)' }}>
+    <Handle type="target" position={Position.Top} style={makeHandleStyle(C.green)} />
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 9, background: 'rgba(56, 189, 248, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 9, background: 'rgba(34, 197, 94, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Layers size={15} color="#38bdf8" />
         </div>
         <div>
@@ -189,7 +189,7 @@ const OutputStoreNode = ({ data }: any) => (
       <Pill color="#10b981"><CheckCircle2 size={10} /> Synced</Pill>
     </div>
     <div style={{ background: C.subCardBg, borderRadius: 10, padding: '8px 10px', textAlign: 'center', fontFamily: fontMono }}>
-      <span style={{ fontSize: 15, fontWeight: 800, color: '#38bdf8' }}>{data.mergedCount ?? 0}</span>
+      <span style={{ fontSize: 15, fontWeight: 800, color: C.green }}>{data.mergedCount ?? 0}</span>
       <span style={{ fontSize: 10.5, color: C.textMuted }}> / 9 Shards Merged</span>
     </div>
   </div>
@@ -228,7 +228,7 @@ export const AgentWorkflowGraph: React.FC<AgentWorkflowGraphProps> = ({
           title: 'Rule-Based Blueprint',
           subtitle: 'Deterministic Decomposer',
           badge: 'Ready',
-          color: '#10b981',
+          color: C.green,
           desc: 'Partitions multi-agent tasks into parallel retrieval & serialized synthesis waves.',
         },
       },
@@ -241,7 +241,7 @@ export const AgentWorkflowGraph: React.FC<AgentWorkflowGraphProps> = ({
           title: 'RCPSP Wavefront Planner',
           subtitle: 'Contention-Aware Scheduler',
           badge: 'Active',
-          color: '#38bdf8',
+          color: C.green,
           desc: 'Pre-stages agents at STAGED_PRE_GATE and schedules M_shared_state windows.',
         },
       },
@@ -268,13 +268,13 @@ export const AgentWorkflowGraph: React.FC<AgentWorkflowGraphProps> = ({
         id: 'beta',
         type: 'agentNode',
         position: { x: 375, y: 530 },
-        data: { name: 'Agent_Beta', domain: 'Code & Synthesis', color: '#10b981', phase: beta.phase, busyPct: beta.busy_pct, completed: beta.tasks_completed },
+        data: { name: 'Agent_Beta', domain: 'Code & Synthesis', color: C.green, phase: beta.phase, busyPct: beta.busy_pct, completed: beta.tasks_completed },
       },
       {
         id: 'gamma',
         type: 'agentNode',
         position: { x: 680, y: 530 },
-        data: { name: 'Agent_Gamma', domain: 'Audit & Verification', color: '#3b82f6', phase: gamma.phase, busyPct: gamma.busy_pct, completed: gamma.tasks_completed },
+        data: { name: 'Agent_Gamma', domain: 'Audit & Verification', color: C.green, phase: gamma.phase, busyPct: gamma.busy_pct, completed: gamma.tasks_completed },
       },
       {
         id: 'mutex',

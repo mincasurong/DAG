@@ -72,7 +72,7 @@ export default function ClosedLoopMonitor({
                 borderRadius: 999,
                 background: 'rgba(16, 185, 129, 0.18)',
                 border: '1px solid rgba(16, 185, 129, 0.45)',
-                color: '#10b981',
+                color: C.green,
                 fontSize: 9.5,
                 fontWeight: 800,
               }}
@@ -91,7 +91,7 @@ export default function ClosedLoopMonitor({
             style={{
               padding: isMobile ? '7px 11px' : '8px 14px',
               borderRadius: 8,
-              background: 'linear-gradient(135deg, #c026d3, #9333ea)',
+              background: 'linear-gradient(135deg, #15803d, #059669)',
               color: '#fff',
               border: 'none',
               cursor: 'pointer',
@@ -109,9 +109,9 @@ export default function ClosedLoopMonitor({
             style={{
               padding: isMobile ? '7px 10px' : '8px 12px',
               borderRadius: 8,
-              background: 'rgba(59, 130, 246, 0.14)',
-              color: '#60a5fa',
-              border: '1px solid rgba(59, 130, 246, 0.35)',
+              background: 'rgba(34, 197, 94, 0.14)',
+              color: C.yellow,
+              border: '1px solid rgba(34, 197, 94, 0.35)',
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: isMobile ? 11 : 11.5,
@@ -131,7 +131,7 @@ export default function ClosedLoopMonitor({
           {
             step: '1. PLAN',
             title: 'Multi-Agent Blueprint',
-            color: '#3b82f6',
+            color: C.green,
             detail: stages
               ? `${stages.plan.initialNodeCount} nodes, ${stages.plan.initialEdgeCount} edges synthesized`
               : 'Parallel retrieval & synthesis wave layout',
@@ -139,7 +139,7 @@ export default function ClosedLoopMonitor({
           {
             step: '2. VALIDATE',
             title: 'Pre-Flight Safety Shield',
-            color: '#f59e0b',
+            color: C.yellow,
             detail: stages
               ? `${stages.validate.certificatesIntercepted} violation(s) auto-repaired in ${stages.validate.writeBackRetries} retry`
               : `${certificates.length} active rejection certificates`,
@@ -147,7 +147,7 @@ export default function ClosedLoopMonitor({
           {
             step: '3. EXECUTE',
             title: 'Wavefront + M_shared_state',
-            color: '#06b6d4',
+            color: C.green,
             detail: stages
               ? `Initial makespan ${stages.execute.initialMakespanSec}s (drift on node #${stages.execute.faultNodeId || 'none'})`
               : `Makespan ${schedule?.makespan_sec ?? 6.6}s | Util ${schedule?.agent_utilization_pct ?? 66.7}%`,
@@ -155,7 +155,7 @@ export default function ClosedLoopMonitor({
           {
             step: '4. LEARN',
             title: 'Drift & Timing Diagnosis',
-            color: '#d946ef',
+            color: C.yellow,
             detail: stages
               ? `${stages.learn.faultClassification} (${stages.learn.maxDriftScore} pts drift)`
               : 'Tier-0/1/2 schema drift & mutex profiler',
@@ -163,7 +163,7 @@ export default function ClosedLoopMonitor({
           {
             step: '5. REVISE',
             title: '0-Token 3-Node Splice',
-            color: '#10b981',
+            color: C.green,
             detail: stages
               ? `Spliced [${stages.revise.splicedNodeIds.length} nodes] in ${stages.revise.recoveryLatencyMs}ms (0 tokens, 0 mutex violations)`
               : 'SubgraphPatcher + Write-Back ready',
@@ -211,7 +211,7 @@ export default function ClosedLoopMonitor({
             </span>
           </div>
           {(stages?.validate?.certificates || certificates || []).length === 0 ? (
-            <div style={{ fontSize: 11, color: '#10b981', display: 'flex', alignItems: 'center', gap: 6, padding: 6 }}>
+            <div style={{ fontSize: 11, color: C.green, display: 'flex', alignItems: 'center', gap: 6, padding: 6 }}>
               <ShieldCheck size={14} /> Zero active token budget or shared-state conflicts.
             </div>
           ) : (
@@ -227,7 +227,7 @@ export default function ClosedLoopMonitor({
                   fontFamily: monoFont,
                 }}
               >
-                <div style={{ color: '#fbbf24', fontWeight: 700, marginBottom: 3 }}>
+                <div style={{ color: C.yellow, fontWeight: 700, marginBottom: 3 }}>
                   [{c.violation_type}] Node #{c.node_id} ({c.agent_id}) — measured {c.measured_value} {c.unit} (limit {c.limit_value} {c.unit})
                 </div>
                 <div style={{ color: C.textDim }}>↳ Auto-Repair: {c.correction_hint}</div>
@@ -254,7 +254,7 @@ export default function ClosedLoopMonitor({
                 Contention-Aware RCPSP Wavefront Windows
               </span>
             </div>
-            <span style={{ fontSize: 10, color: '#22d3ee', fontFamily: monoFont }}>
+            <span style={{ fontSize: 10, color: C.green, fontFamily: monoFont }}>
               Makespan: {closedLoopReport?.finalDag?.schedule?.makespan_sec ?? schedule?.makespan_sec ?? 6.6}s
             </span>
           </div>
@@ -276,10 +276,10 @@ export default function ClosedLoopMonitor({
                 }}
               >
                 <span style={{ color: C.text, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>#{w.node_id}</span>
-                <span style={{ color: '#60a5fa' }}>{String(w.agent_id || w.arm_id || '').replace('agent_', '').toUpperCase()}</span>
+                <span style={{ color: C.yellow }}>{String(w.agent_id || w.arm_id || '').replace('agent_', '').toUpperCase()}</span>
                 {!isMobile && <span style={{ color: C.textDim }}>{w.action}</span>}
-                <span style={{ color: '#fbbf24' }}>{w.start_offset_sec}s→{w.end_offset_sec}s</span>
-                <span style={{ color: w.ui_state === 'STAGED_PRE_GATE' ? '#22d3ee' : '#10b981', textAlign: 'right', fontSize: 9.5 }}>
+                <span style={{ color: C.yellow }}>{w.start_offset_sec}s→{w.end_offset_sec}s</span>
+                <span style={{ color: w.ui_state === 'STAGED_PRE_GATE' ? C.green : C.green, textAlign: 'right', fontSize: 9.5 }}>
                   {w.ui_state}
                 </span>
               </div>
@@ -323,8 +323,8 @@ export default function ClosedLoopMonitor({
                 fontSize: 10.5,
                 fontWeight: 600,
                 border: feedbackCategory === cat ? '1px solid #3b82f6' : `1px solid ${C.border}`,
-                background: feedbackCategory === cat ? 'rgba(59, 130, 246, 0.2)' : 'rgba(0,0,0,0.2)',
-                color: feedbackCategory === cat ? '#60a5fa' : C.textMuted,
+                background: feedbackCategory === cat ? 'rgba(34, 197, 94, 0.2)' : 'rgba(0,0,0,0.2)',
+                color: feedbackCategory === cat ? C.yellow : C.textMuted,
                 cursor: 'pointer',
               }}
             >
@@ -356,7 +356,7 @@ export default function ClosedLoopMonitor({
             style={{
               padding: '8px 14px',
               borderRadius: 8,
-              background: feedbackComment.trim() ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'rgba(255,255,255,0.06)',
+              background: feedbackComment.trim() ? 'linear-gradient(135deg, #16a34a, #059669)' : 'rgba(255,255,255,0.06)',
               color: '#fff',
               border: 'none',
               cursor: feedbackComment.trim() ? 'pointer' : 'not-allowed',
@@ -384,7 +384,7 @@ export default function ClosedLoopMonitor({
               gap: 5,
             }}
           >
-            <div style={{ color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ color: C.green, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
               <Check size={14} /> Active Guardrail Evolution Rule Applied
             </div>
             <div style={{ color: C.text }}>

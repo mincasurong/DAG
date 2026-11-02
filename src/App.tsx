@@ -146,11 +146,31 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: '100vw', height: '100dvh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, overflow: 'hidden' }}>
+    <div className="fluidic-stage" style={{ width: '100vw', height: '100dvh', display: 'flex', flexDirection: 'column', background: C.bg, color: C.text, overflow: 'hidden', position: 'relative' }}>
+      {/* Flowing & Fluidic Light-Green Mesh + SVG Wave Ribbons */}
+      <div className="fluidic-backdrop" />
+      <div className="fluidic-wave-overlay" />
+      <svg
+        viewBox="0 0 1440 320"
+        preserveAspectRatio="none"
+        style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: '38%', pointerEvents: 'none', zIndex: 0, opacity: isDark ? 0.22 : 0.35 }}
+      >
+        <defs>
+          <linearGradient id="fluidGreenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#4ade80" stopOpacity="0.45" />
+            <stop offset="50%" stopColor="#10b981" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#fde047" stopOpacity="0.40" />
+          </linearGradient>
+        </defs>
+        <path
+          fill="url(#fluidGreenGrad)"
+          d="M0,160L60,170.7C120,181,240,203,360,192C480,181,600,139,720,138.7C840,139,960,181,1080,197.3C1200,213,1320,203,1380,197.3L1440,192L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"
+        />
+      </svg>
       {/* Responsive Top Studio Header */}
       <header
         style={{
-          minHeight: isMobile ? 48 : 54,
+          minHeight: isMobile ? 48 : 54, position: 'relative', zIndex: 2, backdropFilter: 'blur(16px)',
           padding: isMobile ? '6px 10px' : '0 16px',
           background: C.bgChat,
           borderBottom: `1px solid ${C.border}`,
@@ -167,19 +187,20 @@ export default function App() {
               width: isMobile ? 28 : 32,
               height: isMobile ? 28 : 32,
               borderRadius: 9,
-              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              background: 'linear-gradient(135deg, #22c55e, #10b981)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 14px rgba(139, 92, 246, 0.4)',
+              boxShadow: '0 0 14px rgba(34, 197, 94, 0.4)',
               flexShrink: 0,
             }}
           >
             <GitBranch size={isMobile ? 14 : 17} color="#fff" />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: isMobile ? 12.5 : 14, fontWeight: 800, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Multi-Agent DAG Studio
+            <div style={{ fontSize: isMobile ? 12.5 : 14, fontWeight: 800, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>Multi-Agent</span>
+              <span style={{ color: C.yellow, background: C.yellowBg, border: `1px solid ${C.yellowBorder}`, padding: '1px 6px', borderRadius: 6 }}>DAG Studio</span>
             </div>
             {!isMobile && (
               <div style={{ fontSize: 10, color: C.textMuted, fontFamily: monoFont }}>
@@ -231,7 +252,7 @@ export default function App() {
                     padding: '5px 11px',
                     borderRadius: 6,
                     border: 'none',
-                    background: activeTab === key ? 'linear-gradient(135deg, #3b82f6, #6d28d9)' : 'transparent',
+                    background: activeTab === key ? 'linear-gradient(135deg, #16a34a, #059669)' : 'transparent',
                     color: activeTab === key ? '#fff' : C.textDim,
                     fontSize: 11.5,
                     fontWeight: 700,
@@ -260,7 +281,7 @@ export default function App() {
                 borderRadius: 8,
                 border: '1px solid rgba(16, 185, 129, 0.45)',
                 background: 'rgba(16, 185, 129, 0.15)',
-                color: '#34d399',
+                color: C.green,
                 fontSize: 11,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -315,7 +336,7 @@ export default function App() {
       </header>
 
       {/* Main Split Body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
         {/* Left Telemetry & Log Sidebar (Desktop only; on Mobile it is a dedicated full-screen tab) */}
         {!isMobile && (
           <aside
@@ -471,7 +492,7 @@ export default function App() {
                 style={{
                   border: 'none',
                   background: 'transparent',
-                  color: active ? '#60a5fa' : C.textMuted,
+                  color: active ? C.yellow : C.textMuted,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',

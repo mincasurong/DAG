@@ -19,6 +19,40 @@ html, body, #root {
 .animate-spin {
   animation: spin 1.2s linear infinite;
 }
+@keyframes fluidFlowA {
+  0%   { transform: translate3d(-4%, -3%, 0) scale(1) rotate(0deg); }
+  50%  { transform: translate3d(5%, 4%, 0) scale(1.08) rotate(6deg); }
+  100% { transform: translate3d(-4%, -3%, 0) scale(1) rotate(0deg); }
+}
+@keyframes fluidFlowB {
+  0%   { transform: translate3d(4%, 3%, 0) scale(1.04) rotate(0deg); }
+  50%  { transform: translate3d(-5%, -4%, 0) scale(0.96) rotate(-6deg); }
+  100% { transform: translate3d(4%, 3%, 0) scale(1.04) rotate(0deg); }
+}
+.fluidic-stage {
+  position: relative;
+  background: var(--bg);
+}
+.fluidic-backdrop {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--fluidMesh);
+  filter: blur(28px);
+  animation: fluidFlowA 16s ease-in-out infinite;
+}
+.fluidic-wave-overlay {
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--fluidWave);
+  animation: fluidFlowB 22s ease-in-out infinite;
+}
+.react-flow__pane, .react-flow__renderer, .react-flow {
+  background: transparent !important;
+}
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

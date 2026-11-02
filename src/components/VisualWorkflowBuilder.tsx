@@ -150,14 +150,14 @@ export function makeDefaultSubsystem(action: string, comfy: ComfyParamConfig): S
 
 const getSubBlockColor = (bType: SimulinkSubBlock['block_type']) => {
   switch (bType) {
-    case 'Inport': return '#06b6d4';
+    case 'Inport': return C.green;
     case 'Filter':
-    case 'Mux': return '#3b82f6';
-    case 'ModelOp': return '#8b5cf6';
-    case 'Gain': return '#f59e0b';
-    case 'Verifier': return '#10b981';
-    case 'Outport': return '#ec4899';
-    default: return '#60a5fa';
+    case 'Mux': return C.green;
+    case 'ModelOp': return C.green;
+    case 'Gain': return C.yellow;
+    case 'Verifier': return C.green;
+    case 'Outport': return C.yellow;
+    default: return C.yellow;
   }
 };
 
@@ -226,15 +226,15 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
 
   const getActionColor = () => {
     switch (data.action) {
-      case 'retrieve': return '#3b82f6';
-      case 'synthesize': return '#10b981';
-      case 'pair_sync': return '#8b5cf6';
-      case 'cross_critique': return '#ec4899';
-      case 'pair_commit': return '#06b6d4';
-      case 're_index_context': return '#f59e0b';
-      case 'patch_artifact': return '#d946ef';
+      case 'retrieve': return C.green;
+      case 'synthesize': return C.green;
+      case 'pair_sync': return C.green;
+      case 'cross_critique': return C.yellow;
+      case 'pair_commit': return C.green;
+      case 're_index_context': return C.yellow;
+      case 'patch_artifact': return C.yellow;
       case 'commit_verified': return '#14b8a6';
-      default: return '#3b82f6';
+      default: return C.green;
     }
   };
 
@@ -296,12 +296,12 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
             #{id} · {data.action.replace(/_/g, ' ')}
           </span>
           {data.spliced && (
-            <span style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(217,70,239,0.2)', color: '#e879f9', fontSize: 8, fontWeight: 800 }}>
+            <span style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(217,70,239,0.2)', color: C.yellow, fontSize: 8, fontWeight: 800 }}>
               0-TOKEN SPLICE
             </span>
           )}
           {data.repaired && (
-            <span style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(245,158,11,0.2)', color: '#fbbf24', fontSize: 8, fontWeight: 800 }}>
+            <span style={{ padding: '1px 5px', borderRadius: 4, background: 'rgba(245,158,11,0.2)', color: C.yellow, fontSize: 8, fontWeight: 800 }}>
               SHIELD REPAIRED
             </span>
           )}
@@ -336,13 +336,13 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
         }}
       >
         <div style={{ display: 'flex', gap: 6 }}>
-          <span style={{ color: '#a78bfa', fontWeight: 700 }}>● MODEL</span>
-          <span style={{ color: '#fbbf24', fontWeight: 700 }}>● CTX</span>
-          <span style={{ color: '#fb923c', fontWeight: 700 }}>● PROMPT</span>
+          <span style={{ color: C.yellow, fontWeight: 700 }}>● MODEL</span>
+          <span style={{ color: C.yellow, fontWeight: 700 }}>● CTX</span>
+          <span style={{ color: C.textDim, fontWeight: 700 }}>● PROMPT</span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <span style={{ color: '#38bdf8', fontWeight: 700 }}>ARTIFACT ●</span>
-          <span style={{ color: '#f472b6', fontWeight: 700 }}>STATE ●</span>
+          <span style={{ color: C.green, fontWeight: 700 }}>ARTIFACT ●</span>
+          <span style={{ color: C.yellow, fontWeight: 700 }}>STATE ●</span>
         </div>
       </div>
 
@@ -370,8 +370,8 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
         {/* ComfyUI KSampler / Checkpoint Parameter Widgets Box */}
         <div
           style={{
-            background: 'rgba(139, 92, 246, 0.07)',
-            border: '1px solid rgba(139, 92, 246, 0.28)',
+            background: 'rgba(34, 197, 94, 0.07)',
+            border: '1px solid rgba(34, 197, 94, 0.28)',
             borderRadius: 8,
             padding: '5px 7px',
             display: 'flex',
@@ -380,13 +380,13 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: '#a78bfa', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: C.yellow, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
               <Cpu size={10} /> ComfyUI Model & KSampler
             </span>
             <select
               value={comfy.model_checkpoint}
               onChange={(e) => updateComfyParam('model_checkpoint', e.target.value)}
-              style={{ background: C.inputBg, border: `1px solid ${C.inputBorder}`, borderRadius: 4, color: '#c4b5fd', fontSize: 9, fontWeight: 700, padding: '1px 4px', fontFamily: monoFont }}
+              style={{ background: C.inputBg, border: `1px solid ${C.inputBorder}`, borderRadius: 4, color: C.yellow, fontSize: 9, fontWeight: 700, padding: '1px 4px', fontFamily: monoFont }}
             >
               <option value="gemini-4-argon">gemini-4-argon</option>
               <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option>
@@ -443,8 +443,8 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
         {/* Simulink Hierarchical Subsystem Box (Sub-Blocks Inside the Block!) */}
         <div
           style={{
-            background: 'rgba(6, 182, 212, 0.07)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
+            background: 'rgba(34, 197, 94, 0.07)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
             borderRadius: 8,
             padding: '5px 7px',
             display: 'flex',
@@ -453,7 +453,7 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: '#22d3ee', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: C.green, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 3 }}>
               <Layers size={10} /> Simulink {subsys.name} ({subsys.sub_blocks.length})
             </span>
             <div style={{ display: 'flex', gap: 3 }}>
@@ -463,9 +463,9 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
                 style={{
                   padding: '1px 5px',
                   borderRadius: 4,
-                  border: '1px solid rgba(6, 182, 212, 0.45)',
-                  background: 'rgba(6, 182, 212, 0.15)',
-                  color: '#22d3ee',
+                  border: '1px solid rgba(34, 197, 94, 0.45)',
+                  background: 'rgba(34, 197, 94, 0.15)',
+                  color: C.green,
                   fontSize: 8,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -483,9 +483,9 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
                 style={{
                   padding: '1px 5px',
                   borderRadius: 4,
-                  border: '1px solid rgba(56, 189, 248, 0.5)',
-                  background: 'rgba(56, 189, 248, 0.2)',
-                  color: '#38bdf8',
+                  border: '1px solid rgba(34, 197, 94, 0.5)',
+                  background: 'rgba(34, 197, 94, 0.2)',
+                  color: C.green,
                   fontSize: 8,
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -524,7 +524,7 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
                     {sb.label.split(':')[0]}
                   </div>
                   {idx < subsys.sub_blocks.length - 1 && (
-                    <span style={{ color: '#22d3ee', fontSize: 8, fontWeight: 800, flexShrink: 0 }}>➔</span>
+                    <span style={{ color: C.green, fontSize: 8, fontWeight: 800, flexShrink: 0 }}>➔</span>
                   )}
                 </React.Fragment>
               );
@@ -549,7 +549,7 @@ const TaskActionNode = ({ id, data }: NodeProps<Node<WorkflowStepData>>) => {
           <span>
             {data.start_offset_sec !== undefined ? `[${data.start_offset_sec}s → ${data.end_offset_sec}s]` : `seed:${comfy.seed}`}
           </span>
-          <span style={{ color: data.ui_state === 'STAGED_PRE_GATE' ? '#22d3ee' : '#10b981', fontWeight: 700 }}>
+          <span style={{ color: data.ui_state === 'STAGED_PRE_GATE' ? C.green : C.green, fontWeight: 700 }}>
             {data.ui_state || data.status}
           </span>
         </div>
@@ -686,8 +686,8 @@ export const TEMPLATES: Record<string, { nodes: Node<WorkflowStepData>[]; edges:
       { id: 'e1-4', source: '1', target: '4', type: 'removable', animated: true, markerEnd: { type: MarkerType.ArrowClosed } },
       { id: 'e2-5', source: '2', target: '5', type: 'removable', animated: true, markerEnd: { type: MarkerType.ArrowClosed } },
       { id: 'e3-6', source: '3', target: '6', type: 'removable', animated: true, markerEnd: { type: MarkerType.ArrowClosed } },
-      { id: 'e4-5', source: '4', target: '5', type: 'removable', animated: true, style: { stroke: '#fbbf24', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
-      { id: 'e5-6', source: '5', target: '6', type: 'removable', animated: true, style: { stroke: '#fbbf24', strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+      { id: 'e4-5', source: '4', target: '5', type: 'removable', animated: true, style: { stroke: C.yellow, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
+      { id: 'e5-6', source: '5', target: '6', type: 'removable', animated: true, style: { stroke: C.yellow, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed } },
     ],
   },
   stream_triage: {
@@ -830,9 +830,9 @@ export default function VisualWorkflowBuilder({
         type: 'removable',
         animated: true,
         style: e.spliced
-          ? { stroke: '#e879f9', strokeWidth: 2.5 }
+          ? { stroke: C.yellow, strokeWidth: 2.5 }
           : e.repaired
-          ? { stroke: '#fbbf24', strokeDasharray: '5,5' }
+          ? { stroke: C.yellow, strokeDasharray: '5,5' }
           : undefined,
         markerEnd: { type: MarkerType.ArrowClosed },
       }));
@@ -1093,8 +1093,8 @@ export default function VisualWorkflowBuilder({
             style={{
               padding: isMobile ? '6px 9px' : '7px 12px',
               borderRadius: 8,
-              border: '1px solid rgba(139, 92, 246, 0.5)',
-              background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+              border: '1px solid rgba(34, 197, 94, 0.5)',
+              background: 'linear-gradient(135deg, #16a34a, #10b981)',
               color: '#fff',
               fontSize: isMobile ? 10.5 : 11.5,
               fontWeight: 700,
@@ -1114,9 +1114,9 @@ export default function VisualWorkflowBuilder({
             style={{
               padding: isMobile ? '6px 9px' : '7px 12px',
               borderRadius: 8,
-              border: '1px solid rgba(6, 182, 212, 0.5)',
-              background: 'rgba(6, 182, 212, 0.16)',
-              color: '#22d3ee',
+              border: '1px solid rgba(34, 197, 94, 0.5)',
+              background: 'rgba(34, 197, 94, 0.16)',
+              color: C.green,
               fontSize: isMobile ? 10.5 : 11.5,
               fontWeight: 700,
               cursor: 'pointer',
@@ -1157,8 +1157,8 @@ export default function VisualWorkflowBuilder({
             style={{
               padding: isMobile ? '6px 10px' : '7px 13px',
               borderRadius: 8,
-              border: '1px solid rgba(217, 70, 239, 0.55)',
-              background: 'linear-gradient(135deg, #c026d3, #9333ea)',
+              border: '1px solid rgba(250, 204, 21, 0.55)',
+              background: 'linear-gradient(135deg, #15803d, #059669)',
               color: '#fff',
               fontSize: isMobile ? 10.5 : 11.5,
               fontWeight: 800,
@@ -1166,7 +1166,7 @@ export default function VisualWorkflowBuilder({
               display: 'flex',
               alignItems: 'center',
               gap: 5,
-              boxShadow: '0 0 14px rgba(217, 70, 239, 0.3)',
+              boxShadow: '0 0 14px rgba(250, 204, 21, 0.3)',
             }}
           >
             <RefreshCw size={12} />
@@ -1249,22 +1249,22 @@ export default function VisualWorkflowBuilder({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontFamily: monoFont, fontSize: 10 }}>
-              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}>
+              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(59,130,246,0.15)', color: C.yellow }}>
                 Makespan: <strong>{scheduleMetrics.makespan_sec}s</strong>
               </span>
-              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
+              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(16,185,129,0.15)', color: C.green }}>
                 Agent Util: <strong>{scheduleMetrics.agent_utilization_pct}%</strong>
               </span>
-              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
+              <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(16,185,129,0.15)', color: C.green }}>
                 Mutex Violations: <strong>{scheduleMetrics.mutex_violations}</strong>
               </span>
               {scheduleMetrics.shield_repairs > 0 && (
-                <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(245,158,11,0.2)', color: '#fbbf24' }}>
+                <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(245,158,11,0.2)', color: C.yellow }}>
                   Shield Repaired: <strong>{scheduleMetrics.shield_repairs}</strong>
                 </span>
               )}
               {scheduleMetrics.spliced_nodes > 0 && (
-                <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(217,70,239,0.2)', color: '#e879f9' }}>
+                <span style={{ padding: '2px 7px', borderRadius: 6, background: 'rgba(217,70,239,0.2)', color: C.yellow }}>
                   0-Token Spliced: <strong>+{scheduleMetrics.spliced_nodes} nodes</strong>
                 </span>
               )}
@@ -1313,10 +1313,10 @@ export default function VisualWorkflowBuilder({
               maskColor={C.miniMapMask}
               nodeColor={(n) => {
                 const d = n.data as WorkflowStepData;
-                if (d?.spliced) return '#d946ef';
-                if (d?.repaired) return '#f59e0b';
-                if (d?.status === 'success') return '#10b981';
-                return '#3b82f6';
+                if (d?.spliced) return C.yellow;
+                if (d?.repaired) return C.yellow;
+                if (d?.status === 'success') return C.green;
+                return C.green;
               }}
             />
           )}
@@ -1348,9 +1348,9 @@ export default function VisualWorkflowBuilder({
                   style={{
                     padding: '6px 12px',
                     borderRadius: 8,
-                    border: '1px solid rgba(56, 189, 248, 0.5)',
-                    background: 'rgba(56, 189, 248, 0.15)',
-                    color: '#38bdf8',
+                    border: '1px solid rgba(34, 197, 94, 0.5)',
+                    background: 'rgba(34, 197, 94, 0.15)',
+                    color: C.green,
                     fontSize: 11.5,
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -1396,7 +1396,7 @@ export default function VisualWorkflowBuilder({
                 style={{
                   padding: '7px 13px',
                   borderRadius: 8,
-                  background: 'linear-gradient(135deg, #06b6d4, #0284c7)',
+                  background: 'linear-gradient(135deg, #16a34a, #10b981)',
                   color: '#fff',
                   border: 'none',
                   fontSize: 11.5,
@@ -1413,8 +1413,8 @@ export default function VisualWorkflowBuilder({
 
             {/* ComfyUI Node Parameters & Simulink Mask Parameters */}
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
-              <div style={{ background: C.bgInput, border: '1px solid rgba(139, 92, 246, 0.4)', borderRadius: 12, padding: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#a78bfa', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: C.bgInput, border: '1px solid rgba(34, 197, 94, 0.4)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.yellow, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Cpu size={14} /> ComfyUI Checkpoint & KSampler Widgets
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, fontFamily: monoFont, fontSize: 11 }}>
@@ -1424,28 +1424,28 @@ export default function VisualWorkflowBuilder({
                   </div>
                   <div>
                     <div style={{ color: C.textMuted, fontSize: 9.5 }}>sampler_name</div>
-                    <div style={{ color: '#38bdf8', fontWeight: 700 }}>{activeSubNode.data.comfy_params?.sampler_name}</div>
+                    <div style={{ color: C.green, fontWeight: 700 }}>{activeSubNode.data.comfy_params?.sampler_name}</div>
                   </div>
                   <div>
                     <div style={{ color: C.textMuted, fontSize: 9.5 }}>scheduler</div>
-                    <div style={{ color: '#10b981', fontWeight: 700 }}>{activeSubNode.data.comfy_params?.scheduler}</div>
+                    <div style={{ color: C.green, fontWeight: 700 }}>{activeSubNode.data.comfy_params?.scheduler}</div>
                   </div>
                   <div>
                     <div style={{ color: C.textMuted, fontSize: 9.5 }}>seed ({activeSubNode.data.comfy_params?.control_after_generate})</div>
-                    <div style={{ color: '#fbbf24', fontWeight: 700 }}>{activeSubNode.data.comfy_params?.seed}</div>
+                    <div style={{ color: C.yellow, fontWeight: 700 }}>{activeSubNode.data.comfy_params?.seed}</div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: C.bgInput, border: '1px solid rgba(6, 182, 212, 0.4)', borderRadius: 12, padding: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#22d3ee', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: C.bgInput, border: '1px solid rgba(34, 197, 94, 0.4)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: C.green, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Layers size={14} /> Simulink Subsystem Mask Parameters (maskeditor)
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, fontFamily: monoFont, fontSize: 11 }}>
                   {Object.entries(activeSubNode.data.subsystem?.mask_params || {}).map(([k, v]) => (
                     <div key={k} style={{ background: 'rgba(0,0,0,0.25)', padding: '6px 8px', borderRadius: 6 }}>
                       <div style={{ color: C.textMuted, fontSize: 9.5 }}>{k}</div>
-                      <div style={{ color: '#22d3ee', fontWeight: 700 }}>{String(v)}</div>
+                      <div style={{ color: C.green, fontWeight: 700 }}>{String(v)}</div>
                     </div>
                   ))}
                 </div>
@@ -1494,14 +1494,14 @@ export default function VisualWorkflowBuilder({
                           <span style={{ fontSize: 9, color: C.textMuted, fontFamily: monoFont }}>#{idx + 1}</span>
                         </div>
                         <div style={{ fontSize: 12, fontWeight: 800, color: C.text }}>{sb.label}</div>
-                        <div style={{ fontSize: 9.5, color: '#a78bfa', fontFamily: monoFont }}>model: {sb.model}</div>
+                        <div style={{ fontSize: 9.5, color: C.yellow, fontFamily: monoFont }}>model: {sb.model}</div>
                         <div style={{ fontSize: 9.5, color: C.textDim, fontFamily: monoFont, background: 'rgba(0,0,0,0.25)', padding: '4px 6px', borderRadius: 5 }}>
                           {JSON.stringify(sb.params)}
                         </div>
                       </div>
 
                       {idx < arr.length - 1 && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22d3ee', fontWeight: 900, fontSize: 18 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.green, fontWeight: 900, fontSize: 18 }}>
                           ➔
                         </div>
                       )}
